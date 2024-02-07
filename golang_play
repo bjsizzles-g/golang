@@ -1,0 +1,42 @@
+
+---
+- name: Deploy Golang service
+  hosts: your_server
+  become: yes
+  become_user: your_fid
+  tasks:
+    - name: Stop the Golang service if it is running
+      shell: "{{ go_installdir }}/app/golang_service.sh stop"
+      ignore_errors: yes
+
+    - name: Create directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+      loop:
+        - "{{ go_installdir }}/logs"
+        - "{{ go_installdir }}/run"
+        - "{{ go_installdir }}/config"
+        - "{{ go_installdir }}/backup"
+
+    - name: Copy old binary to backup directory
+      copy:
+        src: "{{ go_installdir }}/app/app"
+        dest: "{{ go_installdir }}/backup/app_{{ ansible_date_time.epoch }}"
+        mode: 0755
+      ignore_errors: yes
+
+    - name: Copy binary to deployment directory
+      copy:
+        src: /path/to/your/new/binary
+        dest: "{{ go_installdir }}/app"
+        mode: 0755
+
+    - name: Copy golang_service.sh.j2 template to deployment directory
+      template:
+        src: golang_service.sh.j2
+        dest: "{{ go_installdir }}/app/golang_service.sh"
+        mode: 0755
+    # Additional tasks for starting the service
+    # ...
