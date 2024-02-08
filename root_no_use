@@ -1,0 +1,30 @@
+.
+import re
+from ansiblelint import AnsibleLintRule
+
+class NoRootUsage(AnsibleLintRule):
+    id = 'ANSIBLE0002'
+    shortdesc = 'Disallow usage of "root" keyword'
+    description = 'Usage of the word "root" is disallowed in YAML, YML, and INI files.'
+    severity = 'HIGH'
+    tags = ['style']
+
+    def matchyaml(self, file, data):
+        if file['type'] in ['yaml', 'yml']:
+            return self.check_for_root_keyword(data)
+        return False
+
+    def matchini(self, file, data):
+        if file['type'] == 'ini':
+            return self.check_for_root_keyword(data)
+        return False
+
+    def check_for_root_keyword(self, data):
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, str) and re.search(r'\broot\b', value.lower()):
+                    return True
+        return False
+
+    def match(self, file, line):
+        return self.matchyaml(file, line) or self.matchini(file, line)
