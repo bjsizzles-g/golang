@@ -1,0 +1,34 @@
+.
+from ansible.errors import AnsibleLintRuleException
+from ansiblelint import AnsibleLintRule
+
+class NoRootPermissionsRule(AnsibleLintRule):
+    id = 'E9999'
+    shortdesc = 'Avoid using root permissions'
+    description = 'Using root permissions in tasks is risky and should be avoided'
+    tags = ['security']
+
+    def matchtask(self, file, task):
+        violations = []
+
+        # Check become_user
+        become_user = task.get('become_user', '').strip()
+        if '{{' in become_user and '}}' in become_user and 'root' in become_user:
+            violations.append('Using "become_user" with root variable')
+
+        # Check owner
+        if 'owner' in task:
+            owner = task['owner'].strip()
+            if '{{' in owner and '}}' in owner and 'root' in owner:
+                violations.append('Using "owner" with root variable')
+
+        # Check group
+        if 'group' in task:
+            group = task['group'].strip()
+            if '{{' in group and '}}' in group and 'root' in group:
+                violations.append('Using "group" with root variable')
+
+        if violations:
+            return violations
+
+        return False
