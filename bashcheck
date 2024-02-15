@@ -1,0 +1,14 @@
+#!/bin/bash
+
+yaml_file="your_yaml_file.yaml"
+values_to_check=("pre_tasks" "post_tasks" "handlers" "tasks" "environment" "defaults")
+
+# Check if any value in the array is present in the YAML file
+for value in "${values_to_check[@]}"; do
+    if grep -q "$value" "$yaml_file"; then
+        echo "Error: Found value '$value' in the YAML file."
+        exit 1
+    fi
+done
+
+echo "No matching values found in the YAML file."
